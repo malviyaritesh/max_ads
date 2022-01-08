@@ -16,14 +16,14 @@ typedef AdEventListener = void Function(InterstitialAdEvent);
 class InterstitialAd {
   final String adUnitId;
   AdEventListener? listener;
-  int retryAttempt = 0;
+  int loadRetryAttempt = 0;
+  bool displayFailed = false;
 
   InterstitialAd({
     required this.adUnitId,
     this.listener,
   })  : assert(adUnitId.isNotEmpty),
         assert(!MaxAds.interstitialAds.containsKey(adUnitId)) {
-    listener ??= _defaultAdEventListener;
     if (MaxAds.sdkInitialized) {
       create();
       load();
@@ -53,28 +53,31 @@ class InterstitialAd {
     return MaxAds.invokeMethod('disposeInterstitialAd', {'adUnitId': adUnitId});
   }
 
-  void _defaultAdEventListener(InterstitialAdEvent adEvent) {
+  void adEventListener(InterstitialAdEvent adEvent) {
     switch (adEvent) {
       case InterstitialAdEvent.loaded:
-        retryAttempt = 0;
+        loadRetryAttempt = 0;
         break;
       case InterstitialAdEvent.loadFailed:
-        retryAttempt++;
-        if (retryAttempt < 10) {
+        loadRetryAttempt++;
+        if (loadRetryAttempt < 10) {
           Future.delayed(
-            Duration(milliseconds: pow(2, min(5, retryAttempt)).toInt()),
+            Duration(milliseconds: pow(2, min(5, loadRetryAttempt)).toInt()),
             load,
           );
         }
         break;
       case InterstitialAdEvent.displayFailed:
+        displayFailed = true;
         load();
         break;
       case InterstitialAdEvent.hidden:
+        displayFailed = false;
         load();
         break;
       default:
-        // Do nothing.
+      // Do nothing.
     }
+    listener?.call(adEvent);
   }
 }

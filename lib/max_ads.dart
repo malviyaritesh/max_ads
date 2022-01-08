@@ -33,20 +33,21 @@ class MaxAds {
     });
   }
 
-  static Future<bool> invokeMethod(String method, Map<String, dynamic> args) async {
+  static Future<bool> invokeMethod(
+      String method, Map<String, dynamic> args) async {
     final result = await _channel.invokeMethod(method, args);
     return result == true;
   }
 
   static Future<void> _handleMethodCall(MethodCall call) {
-    final Map<String, dynamic> args = call.arguments;
+    final args = Map<String, dynamic>.from(call.arguments);
     if (call.method == 'sdkInitialized') {
       _initAllAds();
       sdkInitialized = true;
     } else if (call.method.startsWith('interstitialAd')) {
       final String adUnitId = args['adUnitId'];
       MaxAds.interstitialAds[adUnitId]
-          ?.listener!(_interstitialAdMethodToEvent[call.method]!);
+          ?.adEventListener(_interstitialAdMethodToEvent[call.method]!);
     }
     return Future.value(null);
   }
