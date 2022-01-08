@@ -16,7 +16,7 @@ class MaxAds {
   };
 
   static bool sdkInitialized = false;
-  static const Map<String, InterstitialAd> interstitialAds = {};
+  static final Map<String, InterstitialAd> interstitialAds = {};
 
   static Future<void> initSdk() {
     if (sdkInitialized) {
@@ -33,21 +33,21 @@ class MaxAds {
     });
   }
 
-  static Future<dynamic> invokeMethod(
-      String method, Map<String, dynamic> args) {
-    return _channel.invokeMethod(method, args);
+  static Future<bool> invokeMethod(String method, Map<String, dynamic> args) async {
+    final result = await _channel.invokeMethod(method, args);
+    return result == true;
   }
 
-  static Future _handleMethodCall(MethodCall call) {
+  static Future<void> _handleMethodCall(MethodCall call) {
     final Map<String, dynamic> args = call.arguments;
     if (call.method == 'sdkInitialized') {
-      sdkInitialized = true;
       _initAllAds();
+      sdkInitialized = true;
     } else if (call.method.startsWith('interstitialAd')) {
       final String adUnitId = args['adUnitId'];
       MaxAds.interstitialAds[adUnitId]
           ?.listener!(_interstitialAdMethodToEvent[call.method]!);
     }
-    return Future.value();
+    return Future.value(null);
   }
 }
