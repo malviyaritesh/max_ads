@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart';
 import 'package:max_ads/max_ads.dart';
 
 enum InterstitialAdEvent {
@@ -13,17 +12,6 @@ enum InterstitialAdEvent {
 typedef AdEventListener = void Function(InterstitialAdEvent);
 
 class InterstitialAd {
-  static const Map<String, InterstitialAdEvent> _methodToEvent = {
-    'interstitialAdLoaded': InterstitialAdEvent.loaded,
-    'interstitialAdDisplayed': InterstitialAdEvent.displayed,
-    'interstitialAdHidden': InterstitialAdEvent.hidden,
-    'interstitialAdClicked': InterstitialAdEvent.clicked,
-    'interstitialAdLoadFailed': InterstitialAdEvent.loadFailed,
-    'interstitialAdDisplayFailed': InterstitialAdEvent.displayFailed,
-  };
-
-  static const Map<String, InterstitialAd> allAds = {};
-
   final String adUnitId;
   AdEventListener? listener;
 
@@ -31,19 +19,12 @@ class InterstitialAd {
     required this.adUnitId,
     this.listener,
   })  : assert(adUnitId.isNotEmpty),
-        assert(!allAds.containsKey(adUnitId)) {
-    allAds[adUnitId] = this;
+        assert(!MaxAds.interstitialAds.containsKey(adUnitId)) {
+    MaxAds.interstitialAds[adUnitId] = this;
     if (MaxAds.sdkInitialized) {
       create();
       load();
     }
-  }
-
-  static void initAllAds() {
-    allAds.forEach((String adUnitId, InterstitialAd ad) {
-      ad.create();
-      ad.load();
-    });
   }
 
   Future<void> create() {
@@ -56,7 +37,7 @@ class InterstitialAd {
 
   Future<bool> isReady() {
     return MaxAds.invokeMethod('isReadyInterstitialAd', {'adUnitId': adUnitId})
-          as Future<bool>;
+        as Future<bool>;
   }
 
   Future<void> show() {
@@ -65,13 +46,7 @@ class InterstitialAd {
 
   Future<void> dispose() {
     listener = null;
-    allAds.remove(adUnitId);
+    MaxAds.interstitialAds.remove(adUnitId);
     return MaxAds.invokeMethod('disposeInterstitialAd', {'adUnitId': adUnitId});
-  }
-
-  static void handleMethodCall(MethodCall call) {
-    final Map<String, dynamic> args = call.arguments;
-    final String adUnitId = args['adUnitId'];
-    allAds[adUnitId]?.listener!(_methodToEvent[call.method]!);
   }
 }
