@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:max_ads/ads/banner_ad.dart';
 import 'package:max_ads/ads/intersititial_ad.dart';
 
 class MaxAds {
@@ -17,6 +19,7 @@ class MaxAds {
 
   static bool sdkInitialized = false;
   static final Map<String, InterstitialAd> interstitialAds = {};
+  static final Map<String, BannerAd> bannerAds = {};
 
   static Future<void> initSdk() {
     if (sdkInitialized) {
@@ -27,7 +30,11 @@ class MaxAds {
   }
 
   static void _initAllAds() {
-    MaxAds.interstitialAds.forEach((adUnitId, ad) {
+    interstitialAds.forEach((adUnitId, ad) {
+      ad.create();
+      ad.load();
+    });
+    bannerAds.forEach((adUnitId, ad) {
       ad.create();
       ad.load();
     });

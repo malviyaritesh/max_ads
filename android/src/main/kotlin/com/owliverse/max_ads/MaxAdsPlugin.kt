@@ -1,12 +1,13 @@
 package com.owliverse.max_ads
 
 import android.app.Activity
-import android.content.Context
 import androidx.annotation.NonNull
+import com.applovin.sdk.AppLovinAdSize
 import com.applovin.sdk.AppLovinMediationProvider
 import com.applovin.sdk.AppLovinSdk
+import com.owliverse.max_ads.ads.BannerAdManager
+import com.owliverse.max_ads.ads.BannerViewFactory
 import com.owliverse.max_ads.ads.InterstitialAdManager
-import io.flutter.Log
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -17,13 +18,20 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
 class MaxAdsPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
-  private lateinit var channel : MethodChannel
-  private lateinit var activity: Activity
-  private lateinit var interstitialAdManager: InterstitialAdManager
 
-  override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "com.owliverse/max_ads")
+  companion object {
+    val interstitialAdManager = InterstitialAdManager()
+    val bannerAdManager = BannerAdManager()
+    lateinit var channel : MethodChannel
+  }
+
+  lateinit var activity: Activity
+  lateinit var pluginBinding: FlutterPlugin.FlutterPluginBinding
+
+  override fun onAttachedToEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+    channel = MethodChannel(binding.binaryMessenger, "com.owliverse/max_ads")
     channel.setMethodCallHandler(this)
+    pluginBinding = binding
   }
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -33,7 +41,7 @@ class MaxAdsPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         result.success(true)
       }
       "createInterstitialAd" -> {
-        interstitialAdManager.createAd(call.argument("adUnitId")!!)
+        interstitialAdManager.createAd(activity, call.argument("adUnitId")!!)
         result.success(true)
       }
       "loadInterstitialAd" -> {
@@ -51,6 +59,20 @@ class MaxAdsPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         interstitialAdManager.disposeAd(call.argument("adUnitId")!!)
         result.success(true)
       }
+      "createBannerAd" -> {
+        val height: Int = call.argument("height") ?: AppLovinAdSize.BANNER.height
+        pluginBinding.platformViewRegistry.registerViewFactory(BannerAdManager.viewTypeId, BannerViewFactory())
+        bannerAdManager.createAd(activity, call.argument("adUnitId")!!, height)
+        result.success(true)
+      }
+      "loadBannerAd" -> {
+        bannerAdManager.loadAd(call.argument("adUnitId")!!)
+        result.success(true)
+      }
+        "disposeBannerAd" -> {
+          bannerAdManager.disposeAd(call.argument("adUnitId")!!)
+          result.success(true)
+        }
       else -> result.notImplemented()
     }
   }
@@ -60,7 +82,6 @@ class MaxAdsPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     AppLovinSdk.initializeSdk(activity) {
       channel.invokeMethod("sdkInitialized", emptyMap<String, String>())
     }
-    interstitialAdManager = InterstitialAdManager(channel, activity)
   }
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
