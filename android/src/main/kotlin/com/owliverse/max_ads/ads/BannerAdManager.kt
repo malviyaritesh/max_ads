@@ -20,11 +20,7 @@ import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
 
-class BannerAdManager: MaxAdViewAdListener {
-    companion object {
-        val viewTypeId = "com.owliverse/max_ads/banner_ad"
-    }
-
+class BannerAdManager : MaxAdViewAdListener {
     private val allAds = mutableMapOf<String, MaxAdView>()
     private lateinit var adView: MaxAdView
 
@@ -66,7 +62,10 @@ class BannerAdManager: MaxAdViewAdListener {
     override fun onAdClicked(ad: MaxAd?) {}
 
     override fun onAdLoadFailed(adUnitId: String?, error: MaxError?) {
-        MaxAdsPlugin.channel.invokeMethod("bannerAdLoadFailed", mapOf("adUnitId" to adUnitId, "error" to error))
+        MaxAdsPlugin.channel.invokeMethod(
+            "bannerAdLoadFailed",
+            mapOf("adUnitId" to adUnitId, "error" to error)
+        )
     }
 
     override fun onAdDisplayFailed(ad: MaxAd?, error: MaxError?) {}
@@ -75,17 +74,17 @@ class BannerAdManager: MaxAdViewAdListener {
 
     override fun onAdCollapsed(ad: MaxAd?) {}
 
-    inner class BannerAdView(context: Context, id: Int, creationParams: Map<*, *>?) :
+    inner class BannerAdView(context: Context, id: Int, private val creationParams: Map<*, *>?) :
         PlatformView {
-        override fun getView(): View {
-            return adView
+        override fun getView(): MaxAdView {
+            return allAds[creationParams?.get("adUnitId")]!!
         }
 
         override fun dispose() {}
     }
 }
 
-class BannerViewFactory: PlatformViewFactory(StandardMessageCodec.INSTANCE) {
+class BannerAdViewFactory : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
     override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
         val creationParams = args as Map<*, *>?
         return MaxAdsPlugin.bannerAdManager.BannerAdView(context, viewId, creationParams)

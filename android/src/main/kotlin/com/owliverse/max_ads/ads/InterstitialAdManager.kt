@@ -1,16 +1,13 @@
 package com.owliverse.max_ads.ads
 
 import android.app.Activity
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.applovin.mediation.MaxAd
 import com.applovin.mediation.MaxAdListener
 import com.applovin.mediation.MaxError
 import com.applovin.mediation.ads.MaxInterstitialAd
 import com.owliverse.max_ads.MaxAdsPlugin
-import io.flutter.plugin.common.MethodChannel
 
-class InterstitialAdManager: MaxAdListener {
+class InterstitialAdManager : MaxAdListener {
 
     private val allAds = mutableMapOf<String, MaxInterstitialAd>()
 
@@ -42,7 +39,10 @@ class InterstitialAdManager: MaxAdListener {
     }
 
     override fun onAdDisplayed(ad: MaxAd?) {
-        MaxAdsPlugin.channel.invokeMethod("interstitialAdDisplayed", mapOf("adUnitId" to ad?.adUnitId))
+        MaxAdsPlugin.channel.invokeMethod(
+            "interstitialAdDisplayed",
+            mapOf("adUnitId" to ad?.adUnitId)
+        )
     }
 
     override fun onAdHidden(ad: MaxAd?) {
@@ -50,14 +50,23 @@ class InterstitialAdManager: MaxAdListener {
     }
 
     override fun onAdClicked(ad: MaxAd?) {
-        MaxAdsPlugin.channel.invokeMethod("interstitialAdClicked", mapOf("adUnitId" to ad?.adUnitId))
+        MaxAdsPlugin.channel.invokeMethod(
+            "interstitialAdClicked",
+            mapOf("adUnitId" to ad?.adUnitId)
+        )
     }
 
     override fun onAdLoadFailed(adUnitId: String?, error: MaxError?) {
-        MaxAdsPlugin.channel.invokeMethod("interstitialAdLoadFailed", mapOf("adUnitId" to adUnitId, "error" to error))
+        MaxAdsPlugin.channel.invokeMethod(
+            "interstitialAdLoadFailed",
+            mapOf("adUnitId" to adUnitId, "error" to error)
+        )
     }
 
     override fun onAdDisplayFailed(ad: MaxAd?, error: MaxError?) {
-        MaxAdsPlugin.channel.invokeMethod("interstitialAdDisplayFailed", mapOf("adUnitId" to ad?.adUnitId, "error" to error))
+        MaxAdsPlugin.channel.invokeMethod(
+            "interstitialAdDisplayFailed",
+            mapOf("adUnitId" to ad?.adUnitId, "error" to error)
+        )
     }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:max_ads/ads/banner_ad.dart';
 import 'package:max_ads/ads/intersititial_ad.dart';
+import 'package:max_ads/ads/native_ad.dart';
 
 class MaxAds {
   static const MethodChannel _channel = MethodChannel('com.owliverse/max_ads');
@@ -20,6 +21,7 @@ class MaxAds {
   static bool sdkInitialized = false;
   static final Map<String, InterstitialAd> interstitialAds = {};
   static final Map<String, BannerAd> bannerAds = {};
+  static final Map<String, NativeAd> nativeAds = {};
 
   static Future<void> initSdk() {
     if (sdkInitialized) {
